@@ -5,25 +5,36 @@ from typing import Any, Dict, List, Optional
 import time
 
 import requests
-from financial_tracker.config import get_ollama_url, get_ollama_model, get_ollama_timeout, get
+from financial_tracker.config import (
+    get_ollama_url,
+    get_ollama_model,
+    get_ollama_timeout,
+    get_ollama_headers,
+)
 from financial_tracker.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
 def _extract_json_block(text: str) -> Any:
-    """Pull the first JSON object/array out of a model response."""
-    text = text.strip()
+    """Pull the first JSON object/array out of a model response with clearer errors."""
+    text = (text or "").strip()
+    if not text:
+        raise ValueError("Empty response from Ollama model")
 
-    array_match = re.search(r"\[(?:.|\n|\r)*\]", text)
-    if array_match:
-        return json.loads(array_match.group(0))
+    try:
+        array_match = re.search(r"\[(?:.|\n|\r)*\]", text)
+        if array_match:
+            return json.loads(array_match.group(0))
 
-    obj_match = re.search(r"\{(?:.|\n|\r)*\}", text)
-    if obj_match:
-        return json.loads(obj_match.group(0))
+        obj_match = re.search(r"\{(?:.|\n|\r)*\}", text)
+        if obj_match:
+            return json.loads(obj_match.group(0))
 
-    return json.loads(text)
+        return json.loads(text)
+    except json.JSONDecodeError as exc:
+        snippet = text[:500]
+        raise ValueError(f"Model response was not valid JSON (first 500 chars): {snippet}") from exc
 
 
 def _to_number(value: Any) -> Optional[float]:
@@ -93,10 +104,22 @@ def ollama_extract_transactions(raw_text: str) -> List[Dict[str, Any]]:
             "stream": False,
             "options": {"temperature": 0},
         },
+        headers=get_ollama_headers(),
         timeout=get_ollama_timeout(),
     )
+
+    if resp.status_code == 401:
+        raise RuntimeError(
+            "Ollama returned 401 Unauthorized. If your Ollama server requires a token, set OLLAMA_API_KEY=<token> and restart the app."
+        )
+
     resp.raise_for_status()
-    data = resp.json()
+
+    try:
+        data = resp.json()
+    except ValueError as exc:
+        raise RuntimeError(f"Ollama response was not JSON: {resp.text[:500]}") from exc
+
     content = (data.get("response") or "").strip()
 
     parsed = _extract_json_block(content)

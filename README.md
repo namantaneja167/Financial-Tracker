@@ -84,7 +84,9 @@ You can configure the application by setting environment variables.
 -   `OLLAMA_HOST`: The URL of your Ollama instance.
     -   Default: `http://localhost:11434`
 -   `OLLAMA_MODEL`: The name of the Ollama model to use.
-    -   Default: `llama3`
+    -   Default: `gemma3:4b`
+-   `OLLAMA_API_KEY`: Bearer token if your Ollama endpoint requires authentication (e.g., secured or cloud endpoint).
+    -   Default: none (not needed for local default install)
 -   `MAX_FILE_SIZE_MB`: The maximum file size for uploads in megabytes.
     -   Default: `20`
 

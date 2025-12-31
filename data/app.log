@@ -1,0 +1,13 @@
+2025-12-31 16:08:01 - ERROR - asyncio - Task exception was never retrieved
+future: <Task finished name='Task-204' coro=<WebSocketProtocol13.write_message.<locals>.wrapper() done, defined at D:\Code\Financial Tracker\.venv\lib\site-packages\tornado\websocket.py:1111> exception=WebSocketClosedError()>
+Traceback (most recent call last):
+  File "D:\Code\Financial Tracker\.venv\lib\site-packages\tornado\websocket.py", line 1113, in wrapper
+    await fut
+tornado.iostream.StreamClosedError: Stream is closed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Code\Financial Tracker\.venv\lib\site-packages\tornado\websocket.py", line 1115, in wrapper
+    raise WebSocketClosedError()
+tornado.websocket.WebSocketClosedError

@@ -16,8 +16,9 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG = {
     "ollama": {
         "base_url": "http://localhost:11434",
-        "model": "gemini-3-flash-preview:cloud",
+        "model": "gemma3:4b",
         "timeout": 30,
+        "api_key": None,
         "max_retries": 3,
     },
     "categorization": {
@@ -156,6 +157,20 @@ def get_ollama_model() -> str:
 def get_ollama_timeout() -> int:
     """Get Ollama API timeout in seconds."""
     return get("ollama.timeout", 30)
+
+
+def get_ollama_api_key() -> Optional[str]:
+    """Get Ollama API key from env or config."""
+    return os.getenv("OLLAMA_API_KEY") or get("ollama.api_key")
+
+
+def get_ollama_headers() -> Dict[str, str]:
+    """Build request headers for Ollama (e.g., Authorization)."""
+    headers: Dict[str, str] = {}
+    api_key = get_ollama_api_key()
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    return headers
 
 
 def get_similarity_threshold() -> float:
