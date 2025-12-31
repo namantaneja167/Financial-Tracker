@@ -20,8 +20,6 @@ from pages.investments import render_investments
 from pages.budgets import render_budgets
 from pages.recurring import render_recurring
 from pages.networth import render_networth
-from pages.rules import render_rules
-from pages.merchants import render_merchants
 from pages.settings import render_settings
 
 
@@ -164,10 +162,10 @@ MAX_FILE_SIZE_MB = get_max_file_size_mb()
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 PDF_MAGIC_BYTES = b'%PDF'
 
-import_type = st.sidebar.radio("Import Type", ["PDF (via Ollama)", "CSV"], horizontal=False)
+import_type = st.sidebar.radio("Import Type", ["Bank Statement PDF", "CSV"], horizontal=False)
 
 uploaded = None
-if import_type == "PDF (via Ollama)":
+if import_type == "Bank Statement PDF":
     uploaded = st.sidebar.file_uploader(
         "Upload Bank PDF",
         type=["pdf"],
@@ -188,7 +186,7 @@ if uploaded is not None:
     
     source_filename = uploaded.name
     
-    if import_type == "PDF (via Ollama)":
+    if import_type == "Bank Statement PDF":
         pdf_bytes = uploaded.getvalue()
         
         # Validate PDF signature
@@ -261,12 +259,42 @@ if uploaded is not None:
 df = get_all_transactions()
 
 if df.empty:
-    st.info("No transactions in database. Upload a PDF or CSV to get started.")
+    # Welcome card for first-time users
+    st.markdown("""
+    <div style="text-align: center; padding: 3rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; margin: 2rem 0;">
+        <h2 style="color: white !important; margin-bottom: 1rem;">👋 Welcome to Financial Tracker!</h2>
+        <p style="color: rgba(255,255,255,0.9) !important; font-size: 1.1rem; margin-bottom: 1.5rem;">
+            Get started by importing your bank transactions. Upload a CSV file or PDF statement from the sidebar.
+        </p>
+        <p style="color: rgba(255,255,255,0.7) !important; font-size: 0.95rem;">
+            ← Use the <strong>Import Data</strong> section in the sidebar to upload your first file
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Quick tips
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        **📄 CSV Import**  
+        Works with most bank exports. Columns detected automatically.
+        """)
+    with col2:
+        st.markdown("""
+        **📑 PDF Import**  
+        Upload bank statement PDFs. AI extracts transactions automatically.
+        """)
+    with col3:
+        st.markdown("""
+        **🤖 Smart Categorization**  
+        Transactions are auto-categorized using AI.
+        """)
+    
     st.stop()
 
 # Create tabs and route to pages
-tab_dashboard, tab_investments, tab_budgets, tab_recurring, tab_networth, tab_rules, tab_merchants, tab_settings = st.tabs([
-    "📊 Dashboard", "💼 Investments", "💰 Budgets", "🔄 Recurring", "📈 Net Worth", "📋 Rules", "🏪 Merchants", "⚙️ Settings"
+tab_dashboard, tab_investments, tab_budgets, tab_recurring, tab_networth, tab_settings = st.tabs([
+    "📊 Dashboard", "💼 Investments", "💰 Budgets", "🔄 Subscriptions", "📈 Net Worth", "⚙️ Settings"
 ])
 
 with tab_dashboard:
@@ -283,12 +311,6 @@ with tab_recurring:
 
 with tab_networth:
     render_networth()
-
-with tab_rules:
-    render_rules()
-
-with tab_merchants:
-    render_merchants()
 
 with tab_settings:
     render_settings()

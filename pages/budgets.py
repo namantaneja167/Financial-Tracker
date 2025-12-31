@@ -12,10 +12,53 @@ from financial_tracker.database import get_budgets, save_budgets, get_monthly_sp
 def render_budgets() -> None:
     """Render the budgets page with budget management and status."""
     st.header("💰 Monthly Budgets")
-    st.markdown("Set spending limits per category to track your spending habits.")
+    st.markdown("Track your spending against budget limits to stay on top of your finances.")
     
     budgets = get_budgets()
     budget_data = budgets if budgets else []
+    budget_dict = {b["category"]: b["monthly_limit"] for b in budgets} if budgets else {}
+    
+    # Show current month budget status FIRST
+    st.subheader("📊 This Month's Progress")
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    
+    spend_by_category = get_monthly_spend_by_category(current_year, current_month)
+    
+    status_data = []
+    for category, spent in spend_by_category.items():
+        budget = budget_dict.get(category, 0)
+        if budget > 0:
+            pct = (spent / budget) * 100
+            status = "⚠️ Over Budget" if spent > budget else "✅ On Track"
+            remaining = max(0, budget - spent)
+            status_data.append({
+                "Category": category,
+                "Spent": spent,
+                "Budget": budget,
+                "Remaining": remaining,
+                "% Used": pct,
+                "Status": status
+            })
+    
+    if status_data:
+        status_df = pd.DataFrame(status_data)
+        st.dataframe(
+            status_df.style.format({
+                "Spent": "${:,.2f}",
+                "Budget": "${:,.2f}",
+                "Remaining": "${:,.2f}",
+                "% Used": "{:.1f}%"
+            }),
+            width='stretch'
+        )
+    else:
+        st.info("💡 Set some budgets below to start tracking your spending!")
+    
+    st.divider()
+    
+    # Budget editor section
+    st.subheader("✏️ Edit Budgets")
     
     # Ensure all categories have a budget entry option
     existing_categories = {b["category"] for b in budget_data}
@@ -35,7 +78,8 @@ def render_budgets() -> None:
                 "Monthly Limit ($)",
                 min_value=0.0,
                 step=50.0,
-                format="%.2f"
+                format="%.2f",
+                help="Set to 0 to disable budget tracking for this category"
             )
         },
         hide_index=True,
@@ -48,38 +92,4 @@ def render_budgets() -> None:
         budgets_to_save = [b for b in budgets_to_save if b["monthly_limit"] > 0]
         save_budgets(budgets_to_save)
         st.toast("✅ Budgets saved!", icon="✅")
-    
-    # Show current month budget status
-    st.subheader("Current Month Budget Status")
-    current_year = datetime.now().year
-    current_month = datetime.now().month
-    
-    spend_by_category = get_monthly_spend_by_category(current_year, current_month)
-    budget_dict = {b["category"]: b["monthly_limit"] for b in get_budgets()}
-    
-    status_data = []
-    for category, spent in spend_by_category.items():
-        budget = budget_dict.get(category, 0)
-        if budget > 0:
-            pct = (spent / budget) * 100
-            status = "⚠️ Over Budget" if spent > budget else "✅ Within Budget"
-            status_data.append({
-                "Category": category,
-                "Spent": spent,
-                "Budget": budget,
-                "% Used": pct,
-                "Status": status
-            })
-    
-    if status_data:
-        status_df = pd.DataFrame(status_data)
-        st.dataframe(
-            status_df.style.format({
-                "Spent": "${:,.2f}",
-                "Budget": "${:,.2f}",
-                "% Used": "{:.1f}%"
-            }),
-            width='stretch'
-        )
-    else:
-        st.info("No spending data for current month yet.")
+        st.rerun()

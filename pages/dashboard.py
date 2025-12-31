@@ -46,7 +46,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
     else:
         _render_charts(analytics_df)
 
-    st.subheader("Categorized DataFrame")
+    st.subheader("All Transactions")
     _render_transaction_table(filtered_df)
 
 
@@ -275,14 +275,28 @@ def _render_transaction_table(df: pd.DataFrame) -> None:
     # Count selected rows
     selected_count = edited_df["Select"].sum() if "Select" in edited_df.columns else 0
     
-    # Bulk action controls
+    # Streamlined action bar
     st.markdown("---")
-    bulk_col1, bulk_col2, bulk_col3 = st.columns([1, 2, 2])
     
-    with bulk_col1:
-        st.caption(f"**{selected_count}** selected")
+    # Check for any individual category edits
+    orig_page_df = df.iloc[start_idx:end_idx]
+    individual_changes = 0
+    for i, (idx, row) in enumerate(edited_df.iterrows()):
+        if "Category" in orig_page_df.columns and i < len(orig_page_df):
+            if row["Category"] != orig_page_df.iloc[i]["Category"]:
+                individual_changes += 1
     
-    with bulk_col2:
+    action_col1, action_col2, action_col3 = st.columns([1, 2, 1])
+    
+    with action_col1:
+        if selected_count > 0:
+            st.caption(f"**{selected_count}** selected")
+        elif individual_changes > 0:
+            st.caption(f"**{individual_changes}** edited")
+        else:
+            st.caption("Select rows or edit categories")
+    
+    with action_col2:
         bulk_category = st.selectbox(
             "Bulk assign category",
             options=[""] + CATEGORIES,
@@ -291,35 +305,33 @@ def _render_transaction_table(df: pd.DataFrame) -> None:
             placeholder="Assign category to selected..."
         )
     
-    with bulk_col3:
-        col_apply, col_save = st.columns(2)
-        with col_apply:
-            if st.button("🏷️ Apply to Selected", disabled=(selected_count == 0 or not bulk_category)):
-                # Apply bulk category change
-                overrides = get_category_overrides()
-                applied = 0
+    with action_col3:
+        # Single unified save button
+        has_changes = selected_count > 0 and bulk_category or individual_changes > 0
+        button_label = "💾 Save All Changes" if individual_changes > 0 else "🏷️ Apply & Save"
+        
+        if st.button(button_label, type="primary", disabled=not has_changes, use_container_width=True):
+            overrides = get_category_overrides()
+            changes = 0
+            
+            # Apply bulk category to selected rows
+            if selected_count > 0 and bulk_category:
                 for idx, row in edited_df.iterrows():
                     if row.get("Select", False):
                         overrides[row["Description"]] = bulk_category
-                        applied += 1
-                save_overrides(overrides)
-                st.toast(f"✅ Applied '{bulk_category}' to {applied} transactions!", icon="🏷️")
+                        changes += 1
+            
+            # Save individual category edits
+            for i, (idx, row) in enumerate(edited_df.iterrows()):
+                if "Category" in orig_page_df.columns and i < len(orig_page_df):
+                    orig_category = orig_page_df.iloc[i]["Category"]
+                    if row["Category"] != orig_category and not row.get("Select", False):
+                        overrides[row["Description"]] = row["Category"]
+                        changes += 1
+            
+            save_overrides(overrides)
+            if changes > 0:
+                st.toast(f"✅ Saved {changes} category change(s)!", icon="✅")
                 st.rerun()
-        
-        with col_save:
-            if st.button("💾 Save Changes", type="primary"):
-                overrides = get_category_overrides()
-                changes = 0
-                # Get original values (without Select column)
-                orig_page_df = df.iloc[start_idx:end_idx]
-                for i, (idx, row) in enumerate(edited_df.iterrows()):
-                    if "Category" in orig_page_df.columns and i < len(orig_page_df):
-                        orig_category = orig_page_df.iloc[i]["Category"]
-                        if row["Category"] != orig_category:
-                            overrides[row["Description"]] = row["Category"]
-                            changes += 1
-                save_overrides(overrides)
-                if changes > 0:
-                    st.toast(f"✅ Saved {changes} category change(s)!", icon="✅")
-                else:
-                    st.toast("No changes to save", icon="ℹ️")
+            else:
+                st.toast("No changes to save", icon="ℹ️")

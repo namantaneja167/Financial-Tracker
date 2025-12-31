@@ -14,7 +14,7 @@ def render_recurring(df: pd.DataFrame) -> None:
     Args:
         df: DataFrame containing all transactions
     """
-    st.header("🔄 Recurring Transactions")
+    st.header("🔄 Subscriptions & Recurring")
     st.markdown("Automatically detected subscriptions, rent, and other recurring expenses based on your transaction history.")
     
     upcoming = get_upcoming_recurring_expenses(df, days_ahead=60)

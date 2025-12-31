@@ -1,6 +1,7 @@
 """
 Settings and Backup page - System configuration and data management.
 """
+import pandas as pd
 import streamlit as st
 from datetime import datetime
 
@@ -11,25 +12,33 @@ from financial_tracker.backup import (
     delete_backup,
     BACKUP_DIR
 )
+from financial_tracker.categorizer import CATEGORIES, get_keyword_rules, save_rules
 from financial_tracker.config import get_config
+from financial_tracker.merchant_normalizer import get_all_custom_mappings, save_custom_mappings
 
 
 def render_settings() -> None:
     """Render the settings and backup page."""
-    st.header("⚙️ Settings & Backup")
+    st.header("⚙️ Settings")
     
-    tab1, tab2 = st.tabs(["🔧 Settings", "💾 Backup & Restore"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🎨 Preferences", "📋 Category Rules", "🏪 Merchants", "💾 Backup"])
     
     with tab1:
         _render_settings()
     
     with tab2:
+        _render_rules()
+    
+    with tab3:
+        _render_merchants()
+    
+    with tab4:
         _render_backup()
 
 
 def _render_settings() -> None:
     """Render application settings."""
-    st.subheader("Application Settings")
+    st.subheader("Application Preferences")
     
     # Theme toggle - this one actually works!
     st.write("**🎨 Appearance**")
@@ -52,71 +61,172 @@ def _render_settings() -> None:
         st.caption("💡 Theme changes take effect immediately")
     
     st.markdown("---")
-    st.info("💡 The settings below are stored in `config.yaml` and shown for reference.")
     
     config = get_config()
     
-    st.write("**Display Settings**")
+    # Display settings as clean read-only values
+    st.write("**📊 Display Settings**")
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.number_input(
-            "Rows per page",
-            min_value=10,
-            max_value=200,
-            value=config.get("rows_per_page", 25),
-            step=10,
-            help="Number of transactions to display per page",
-            disabled=True
-        )
+        st.markdown(f"**Rows per page:** `{config.get('rows_per_page', 25)}`")
+    with col2:
+        st.markdown(f"**Chart height:** `{config.get('chart_height', 400)}px`")
+    
+    st.write("**🤖 Categorization Settings**")
+    use_embeddings = config.get("use_embeddings", True)
+    st.markdown(f"**AI categorization:** {'✅ Enabled' if use_embeddings else '❌ Disabled'}")
+    st.markdown(f"**Similarity threshold:** `{config.get('similarity_threshold', 0.75):.0%}`")
+    
+    st.write("**📥 Import Settings**")
+    col1, col2 = st.columns(2)
+    with col1:
+        auto_cat = config.get("auto_categorize", True)
+        st.markdown(f"**Auto-categorize:** {'✅ Yes' if auto_cat else '❌ No'}")
+    with col2:
+        detect_dup = config.get("detect_duplicates", True)
+        st.markdown(f"**Detect duplicates:** {'✅ Yes' if detect_dup else '❌ No'}")
+    
+    st.info("💡 To modify these settings, edit `config.yaml` in the project root and restart the app.")
+
+
+def _render_rules() -> None:
+    """Render keyword rules management."""
+    st.subheader("Category Rules")
+    st.markdown("Define keyword patterns to automatically categorize transactions. Matching is case-insensitive.")
+    
+    rules = get_keyword_rules()
+    
+    rules_data = []
+    for rule in rules:
+        rules_data.append({
+            "Category": rule["category"],
+            "Keywords": ", ".join(rule["keywords"])
+        })
+    
+    rules_df = pd.DataFrame(rules_data) if rules_data else pd.DataFrame(columns=["Category", "Keywords"])
+    
+    st.info("💡 **Tip**: Enter keywords separated by commas. Example: `netflix, hulu, disney+` for Subscriptions.")
+    
+    edited_rules_df = st.data_editor(
+        rules_df,
+        column_config={
+            "Category": st.column_config.SelectboxColumn(
+                "Category",
+                options=CATEGORIES,
+                required=True,
+                help="Select the category for matching transactions"
+            ),
+            "Keywords": st.column_config.TextColumn(
+                "Keywords (comma-separated)",
+                help="Enter keywords separated by commas. Any transaction containing these words will be assigned to this category.",
+                required=True,
+                width="large"
+            )
+        },
+        num_rows="dynamic",
+        hide_index=True,
+        width='stretch',
+    )
+    
+    if st.button("💾 Save Rules", type="primary", key="save_rules"):
+        new_rules = []
+        for _, row in edited_rules_df.iterrows():
+            keywords = [kw.strip() for kw in row["Keywords"].split(",") if kw.strip()]
+            if keywords:
+                new_rules.append({
+                    "category": row["Category"],
+                    "keywords": keywords
+                })
+        save_rules(new_rules)
+        st.toast("✅ Rules saved successfully!", icon="✅")
+
+
+def _render_merchants() -> None:
+    """Render merchant normalization rules."""
+    st.subheader("Merchant Names")
+    st.markdown("Manage merchant name normalization rules to clean up transaction descriptions.")
+    
+    # Get current rules
+    rules = get_all_custom_mappings()
+    
+    # Convert to DataFrame for editing
+    if rules:
+        rules_df = pd.DataFrame([
+            {"Pattern": pattern, "Normalized Name": normalized}
+            for pattern, normalized in rules.items()
+        ])
+    else:
+        rules_df = pd.DataFrame(columns=["Pattern", "Normalized Name"])
+    
+    st.info(
+        "**Pattern**: Text to search for in merchant names (case-insensitive)  \n"
+        "**Normalized Name**: Clean name to replace it with"
+    )
+    
+    # Editable table
+    edited_df = st.data_editor(
+        rules_df,
+        num_rows="dynamic",
+        width='stretch',
+        column_config={
+            "Pattern": st.column_config.TextColumn(
+                "Pattern",
+                help="Text pattern to match (e.g., 'amzn', 'walmart')",
+                required=True
+            ),
+            "Normalized Name": st.column_config.TextColumn(
+                "Normalized Name",
+                help="Clean merchant name (e.g., 'Amazon', 'Walmart')",
+                required=True
+            )
+        }
+    )
+    
+    col1, col2, col3 = st.columns([2, 1, 1])
     
     with col2:
-        st.number_input(
-            "Chart height (pixels)",
-            min_value=200,
-            max_value=800,
-            value=config.get("chart_height", 400),
-            step=50,
-            help="Chart display height in pixels",
-            disabled=True
-        )
+        if st.button("💾 Save Merchants", type="primary", width='stretch'):
+            # Convert back to dict
+            new_rules = {}
+            for _, row in edited_df.iterrows():
+                if pd.notna(row["Pattern"]) and pd.notna(row["Normalized Name"]):
+                    pattern = str(row["Pattern"]).strip()
+                    normalized = str(row["Normalized Name"]).strip()
+                    if pattern and normalized:
+                        new_rules[pattern] = normalized
+            
+            save_custom_mappings(new_rules)
+            st.toast(f"✅ Saved {len(new_rules)} merchant rules!", icon="✅")
+            st.rerun()
     
-    st.write("**Categorization Settings**")
+    with col3:
+        if st.button("🔄 Reset to Defaults", width='stretch'):
+            default_rules = {
+                "amazon": "Amazon",
+                "amzn": "Amazon",
+                "aws": "Amazon Web Services",
+                "walmart": "Walmart",
+                "target": "Target",
+                "costco": "Costco",
+                "starbucks": "Starbucks",
+                "mcdonald": "McDonald's",
+                "whole foods": "Whole Foods",
+                "trader joe": "Trader Joe's",
+                "netflix": "Netflix",
+                "spotify": "Spotify",
+                "uber": "Uber",
+                "lyft": "Lyft",
+                "venmo": "Venmo",
+                "paypal": "PayPal"
+            }
+            save_custom_mappings(default_rules)
+            st.toast("✅ Reset to default rules!", icon="🔄")
+            st.rerun()
     
-    st.checkbox(
-        "Enable embeddings-based categorization",
-        value=config.get("use_embeddings", True),
-        help="Use AI embeddings for smarter categorization (requires sentence-transformers)",
-        disabled=True
-    )
-    
-    st.slider(
-        "Similarity threshold",
-        min_value=0.5,
-        max_value=0.95,
-        value=config.get("similarity_threshold", 0.75),
-        step=0.05,
-        help="Higher values require closer matches. 0.75 = 75% similarity required for auto-categorization.",
-        disabled=True
-    )
-    
-    st.write("**Data Import Settings**")
-    
-    st.checkbox(
-        "Auto-categorize on import",
-        value=config.get("auto_categorize", True),
-        help="Automatically categorize transactions when importing PDF/CSV files",
-        disabled=True
-    )
-    
-    st.checkbox(
-        "Detect duplicate transactions",
-        value=config.get("detect_duplicates", True),
-        help="Skip duplicate transactions during import",
-        disabled=True
-    )
-    
-    st.caption("To modify settings, edit `config.yaml` in the project root and restart the app.")
+    # Statistics
+    col1, col2 = st.columns(2)
+    col1.metric("Total Rules", len(rules))
+    col2.metric("Active Normalizations", sum(1 for r in rules.values() if r))
 
 
 def _render_backup() -> None:
