@@ -16,7 +16,7 @@ from financial_tracker.config import get_config
 
 def render_settings() -> None:
     """Render the settings and backup page."""
-    st.title("⚙️ Settings & Backup")
+    st.header("⚙️ Settings & Backup")
     
     tab1, tab2 = st.tabs(["🔧 Settings", "💾 Backup & Restore"])
     
@@ -31,63 +31,92 @@ def _render_settings() -> None:
     """Render application settings."""
     st.subheader("Application Settings")
     
+    # Theme toggle - this one actually works!
+    st.write("**🎨 Appearance**")
+    col_theme1, col_theme2 = st.columns([1, 3])
+    
+    with col_theme1:
+        current_theme = st.session_state.get("theme", "light")
+        theme_options = ["light", "dark"]
+        new_theme = st.selectbox(
+            "Theme",
+            options=theme_options,
+            index=theme_options.index(current_theme),
+            help="Switch between light and dark mode"
+        )
+        if new_theme != current_theme:
+            st.session_state.theme = new_theme
+            st.rerun()
+    
+    with col_theme2:
+        st.caption("💡 Theme changes take effect immediately")
+    
+    st.markdown("---")
+    st.info("💡 The settings below are stored in `config.yaml` and shown for reference.")
+    
     config = get_config()
     
     st.write("**Display Settings**")
     col1, col2 = st.columns(2)
     
     with col1:
-        rows_per_page = st.number_input(
+        st.number_input(
             "Rows per page",
             min_value=10,
             max_value=200,
             value=config.get("rows_per_page", 25),
             step=10,
-            help="Number of transactions to display per page"
+            help="Number of transactions to display per page",
+            disabled=True
         )
     
     with col2:
-        chart_height = st.number_input(
+        st.number_input(
             "Chart height (pixels)",
             min_value=200,
             max_value=800,
             value=config.get("chart_height", 400),
-            step=50
+            step=50,
+            help="Chart display height in pixels",
+            disabled=True
         )
     
     st.write("**Categorization Settings**")
     
-    use_embeddings = st.checkbox(
+    st.checkbox(
         "Enable embeddings-based categorization",
         value=config.get("use_embeddings", True),
-        help="Use AI embeddings for smarter categorization (requires sentence-transformers)"
+        help="Use AI embeddings for smarter categorization (requires sentence-transformers)",
+        disabled=True
     )
     
-    similarity_threshold = st.slider(
+    st.slider(
         "Similarity threshold",
         min_value=0.5,
         max_value=0.95,
         value=config.get("similarity_threshold", 0.75),
         step=0.05,
-        help="Minimum similarity score for embeddings matching"
+        help="Higher values require closer matches. 0.75 = 75% similarity required for auto-categorization.",
+        disabled=True
     )
     
     st.write("**Data Import Settings**")
     
-    auto_categorize = st.checkbox(
+    st.checkbox(
         "Auto-categorize on import",
         value=config.get("auto_categorize", True),
-        help="Automatically categorize transactions during import"
+        help="Automatically categorize transactions when importing PDF/CSV files",
+        disabled=True
     )
     
-    detect_duplicates = st.checkbox(
+    st.checkbox(
         "Detect duplicate transactions",
         value=config.get("detect_duplicates", True),
-        help="Skip duplicate transactions during import"
+        help="Skip duplicate transactions during import",
+        disabled=True
     )
     
-    if st.button("💾 Save Settings", type="primary"):
-        st.info("ℹ️ Settings are read-only. Edit config.yaml directly to change settings.")
+    st.caption("To modify settings, edit `config.yaml` in the project root and restart the app.")
 
 
 def _render_backup() -> None:
@@ -99,10 +128,10 @@ def _render_backup() -> None:
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        include_db = st.checkbox("Include Database", value=True)
+        include_db = st.checkbox("Include Database", value=True, help="Include transactions, budgets, and portfolio history")
     
     with col2:
-        include_config = st.checkbox("Include Config", value=True)
+        include_config = st.checkbox("Include Config", value=True, help="Include custom rules and merchant mappings")
     
     with col3:
         if st.button("📦 Create Backup", type="primary", width='stretch'):

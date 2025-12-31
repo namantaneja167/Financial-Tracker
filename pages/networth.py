@@ -10,7 +10,7 @@ from financial_tracker.database import get_portfolio_history
 
 def render_networth() -> None:
     """Render the net worth tracking page."""
-    st.subheader("Net Worth Over Time")
+    st.header("📈 Net Worth Over Time")
     
     history = get_portfolio_history()
     

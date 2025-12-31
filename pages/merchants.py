@@ -63,7 +63,7 @@ def render_merchants() -> None:
                         new_rules[pattern] = normalized
             
             save_custom_mappings(new_rules)
-            st.success(f"✅ Saved {len(new_rules)} merchant rules!")
+            st.toast(f"✅ Saved {len(new_rules)} merchant rules!", icon="✅")
             st.rerun()
     
     with col3:
@@ -88,7 +88,7 @@ def render_merchants() -> None:
                 "paypal": "PayPal"
             }
             save_custom_mappings(default_rules)
-            st.success("✅ Reset to default rules!")
+            st.toast("✅ Reset to default rules!", icon="🔄")
             st.rerun()
     
     # Statistics

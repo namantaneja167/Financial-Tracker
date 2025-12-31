@@ -38,262 +38,127 @@ st.set_page_config(
     }
 )
 
-# Custom CSS for clean, readable design
-st.markdown("""
-<style>
-    /* Force light theme on everything */
-    html, body, [data-testid="stAppViewContainer"], .main {
-        background-color: #ffffff !important;
-        color: #1a1a1a !important;
-    }
-    
-    /* Override Streamlit's dark theme */
-    .st-emotion-cache-13k62yr {
-        background-color: #ffffff !important;
-        color: #1a1a1a !important;
-    }
-    
-    /* Sidebar light theme */
-    [data-testid="stSidebar"], [data-testid="stSidebarContent"] {
-        background-color: #f0f2f6 !important;
-    }
-    
-    /* All text must be dark and readable */
-    *, p, span, div, label, h1, h2, h3, h4, h5, h6, li, td, th {
-        color: #1a1a1a !important;
-    }
-    
-    /* Headers with blue accent */
-    h1 {
-        color: #1f77b4 !important;
-        font-weight: 700 !important;
-        border-bottom: 3px solid #1f77b4;
-        padding-bottom: 0.5rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    h2 {
-        color: #1f77b4 !important;
-        font-weight: 600 !important;
-        margin-top: 1.5rem;
-    }
-    
-    h3 {
-        color: #2c3e50 !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Metric cards with clear backgrounds */
-    [data-testid="stMetric"] {
-        background-color: #f8f9fa !important;
-        padding: 1rem;
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-    }
-    
-    [data-testid="stMetricValue"] {
-        font-size: 2rem !important;
-        font-weight: 700 !important;
-        color: #2c3e50 !important;
-    }
-    
-    [data-testid="stMetricLabel"] {
-        color: #495057 !important;
-        font-weight: 500 !important;
-        font-size: 0.9rem !important;
-    }
-    
-    /* Input fields - white with dark text */
-    input, textarea, select, [data-baseweb="input"] {
-        background-color: #ffffff !important;
-        color: #1a1a1a !important;
-        border: 1px solid #ced4da !important;
-    }
-    
-    /* Buttons - clear and clickable */
-    .stButton > button {
-        background-color: #ffffff !important;
-        color: #1a1a1a !important;
-        border: 2px solid #dee2e6 !important;
-        border-radius: 6px;
-        font-weight: 500;
-        padding: 0.5rem 1.5rem;
-    }
-    
-    .stButton > button:hover {
-        background-color: #e9ecef !important;
-        border-color: #1f77b4 !important;
-        transform: translateY(-1px);
-    }
-    
-    .stButton > button[kind="primary"] {
-        background-color: #1f77b4 !important;
-        color: #ffffff !important;
-        border: none !important;
-    }
-    
-    .stButton > button[kind="primary"]:hover {
-        background-color: #1560a8 !important;
-    }
-    
-    /* Tabs - light with clear selection */
-    .stTabs [data-baseweb="tab-list"] {
-        background-color: #f8f9fa !important;
-        padding: 0.5rem;
-        border-radius: 8px;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background-color: #ffffff !important;
-        color: #495057 !important;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        padding: 0.5rem 1rem;
-        font-weight: 500;
-    }
-    
-    .stTabs [data-baseweb="tab"]:hover {
-        background-color: #e7f3ff !important;
-        color: #1a1a1a !important;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background-color: #1f77b4 !important;
-        color: #ffffff !important;
-        border-color: #1f77b4 !important;
-    }
-    
-    /* Data tables and dataframes */
-    [data-testid="stDataFrame"], .stDataFrame {
-        background-color: #ffffff !important;
-        border: 2px solid #dee2e6 !important;
-        border-radius: 8px;
-    }
-    
-    /* Table headers */
-    thead tr, thead th {
-        background-color: #f8f9fa !important;
-        color: #1a1a1a !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Table cells */
-    tbody tr, tbody td {
-        background-color: #ffffff !important;
-        color: #1a1a1a !important;
-    }
-    
-    tbody tr:hover {
-        background-color: #f8f9fa !important;
-    }
-    
-    /* Success/Info/Warning messages */
-    .stSuccess {
-        background-color: #d4edda !important;
-        color: #155724 !important;
-        border: 2px solid #c3e6cb !important;
-        border-radius: 6px;
-        padding: 1rem;
-    }
-    
-    .stInfo {
-        background-color: #d1ecf1 !important;
-        color: #0c5460 !important;
-        border: 2px solid #bee5eb !important;
-        border-radius: 6px;
-        padding: 1rem;
-    }
-    
-    .stWarning {
-        background-color: #fff3cd !important;
-        color: #856404 !important;
-        border: 2px solid #ffeeba !important;
-        border-radius: 6px;
-        padding: 1rem;
-    }
-    
-    .stError {
-        background-color: #f8d7da !important;
-        color: #721c24 !important;
-        border: 2px solid #f5c6cb !important;
-        border-radius: 6px;
-        padding: 1rem;
-    }
-    
-    /* Expanders */
-    .streamlit-expanderHeader {
-        background-color: #f8f9fa !important;
-        color: #1a1a1a !important;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        font-weight: 600;
-    }
-    
-    /* File uploader */
-    [data-testid="stFileUploader"] {
-        background-color: #f8f9fa !important;
-        border: 2px dashed #adb5bd !important;
-        border-radius: 8px;
-    }
-    
-    /* Selectbox and other inputs */
-    [data-baseweb="select"], [data-baseweb="popover"] {
-        background-color: #ffffff !important;
-    }
-    
-    /* Radio buttons and checkboxes */
-    [data-testid="stRadio"] label, [data-testid="stCheckbox"] label {
-        color: #1a1a1a !important;
-    }
-    
-    /* Sidebar navigation links */
-    [data-testid="stSidebarNav"] a {
-        color: #1a1a1a !important;
-    }
-    
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #e9ecef !important;
-    }
-    
-    /* Number input */
-    [data-testid="stNumberInput"] input {
-        background-color: #ffffff !important;
-        color: #1a1a1a !important;
-    }
-    
-    /* Code blocks */
-    code {
-        background-color: #f8f9fa !important;
-        color: #e83e8c !important;
-        padding: 0.2rem 0.4rem;
-        border-radius: 3px;
-    }
-    
-    pre {
-        background-color: #f8f9fa !important;
-        color: #1a1a1a !important;
-        padding: 1rem;
-        border-radius: 6px;
-        border: 1px solid #dee2e6;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Theme management
+if "theme" not in st.session_state:
+    st.session_state.theme = "light"
+
+def get_theme_css(theme: str) -> str:
+    """Generate CSS for the selected theme."""
+    if theme == "dark":
+        return """
+        <style>
+            /* Dark theme */
+            html, body, [data-testid="stAppViewContainer"], .main {
+                background-color: #1a1a2e !important;
+                color: #e4e4e7 !important;
+            }
+            
+            [data-testid="stSidebar"], [data-testid="stSidebarContent"] {
+                background-color: #16213e !important;
+            }
+            
+            *, p, span, div, label, li, td, th {
+                color: #e4e4e7 !important;
+            }
+            
+            h1 { color: #60a5fa !important; font-weight: 700 !important; border-bottom: 3px solid #60a5fa; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+            h2 { color: #60a5fa !important; font-weight: 600 !important; margin-top: 1.5rem; }
+            h3 { color: #93c5fd !important; font-weight: 600 !important; }
+            
+            [data-testid="stMetric"] { background-color: #16213e !important; padding: 1rem; border-radius: 8px; border: 1px solid #374151; }
+            [data-testid="stMetricValue"] { font-size: 2rem !important; font-weight: 700 !important; color: #f9fafb !important; }
+            [data-testid="stMetricLabel"] { color: #9ca3af !important; font-weight: 500 !important; font-size: 0.9rem !important; }
+            
+            input, textarea, select, [data-baseweb="input"] { background-color: #1f2937 !important; color: #e4e4e7 !important; border: 1px solid #374151 !important; }
+            
+            .stButton > button { background-color: #1f2937 !important; color: #e4e4e7 !important; border: 2px solid #374151 !important; border-radius: 6px; font-weight: 500; }
+            .stButton > button:hover { background-color: #374151 !important; border-color: #60a5fa !important; }
+            .stButton > button[kind="primary"] { background-color: #2563eb !important; color: #ffffff !important; border: none !important; }
+            .stButton > button[kind="primary"]:hover { background-color: #1d4ed8 !important; }
+            
+            .stTabs [data-baseweb="tab-list"] { background-color: #16213e !important; padding: 0.5rem; border-radius: 8px; }
+            .stTabs [data-baseweb="tab"] { background-color: #1f2937 !important; color: #9ca3af !important; border: 1px solid #374151; border-radius: 6px; }
+            .stTabs [data-baseweb="tab"]:hover { background-color: #374151 !important; color: #e4e4e7 !important; }
+            .stTabs [aria-selected="true"] { background-color: #2563eb !important; color: #ffffff !important; border-color: #2563eb !important; }
+            
+            [data-testid="stDataFrame"], .stDataFrame { background-color: #1f2937 !important; border: 2px solid #374151 !important; border-radius: 8px; }
+            thead tr, thead th { background-color: #16213e !important; color: #e4e4e7 !important; font-weight: 600 !important; }
+            tbody tr, tbody td { background-color: #1f2937 !important; color: #e4e4e7 !important; }
+            tbody tr:hover { background-color: #374151 !important; }
+            
+            .stSuccess { background-color: #065f46 !important; color: #d1fae5 !important; border: 2px solid #10b981 !important; border-radius: 6px; padding: 1rem; }
+            .stInfo { background-color: #1e40af !important; color: #dbeafe !important; border: 2px solid #3b82f6 !important; border-radius: 6px; padding: 1rem; }
+            .stWarning { background-color: #78350f !important; color: #fef3c7 !important; border: 2px solid #f59e0b !important; border-radius: 6px; padding: 1rem; }
+            .stError { background-color: #7f1d1d !important; color: #fee2e2 !important; border: 2px solid #ef4444 !important; border-radius: 6px; padding: 1rem; }
+            
+            .streamlit-expanderHeader { background-color: #1f2937 !important; color: #e4e4e7 !important; border: 1px solid #374151; border-radius: 6px; }
+            [data-testid="stFileUploader"] { background-color: #1f2937 !important; border: 2px dashed #4b5563 !important; border-radius: 8px; }
+            [data-baseweb="select"], [data-baseweb="popover"] { background-color: #1f2937 !important; }
+            [data-testid="stNumberInput"] input { background-color: #1f2937 !important; color: #e4e4e7 !important; }
+            code { background-color: #1f2937 !important; color: #f472b6 !important; padding: 0.2rem 0.4rem; border-radius: 3px; }
+            pre { background-color: #1f2937 !important; color: #e4e4e7 !important; padding: 1rem; border-radius: 6px; border: 1px solid #374151; }
+        </style>
+        """
+    else:
+        return """
+        <style>
+            /* Light theme */
+            html, body, [data-testid="stAppViewContainer"], .main {
+                background-color: #ffffff !important;
+                color: #1a1a1a !important;
+            }
+            
+            .st-emotion-cache-13k62yr { background-color: #ffffff !important; color: #1a1a1a !important; }
+            [data-testid="stSidebar"], [data-testid="stSidebarContent"] { background-color: #f0f2f6 !important; }
+            
+            *, p, span, div, label, li, td, th { color: #1a1a1a !important; }
+            
+            h1 { color: #1f77b4 !important; font-weight: 700 !important; border-bottom: 3px solid #1f77b4; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+            h2 { color: #1f77b4 !important; font-weight: 600 !important; margin-top: 1.5rem; }
+            h3 { color: #2c3e50 !important; font-weight: 600 !important; }
+            
+            [data-testid="stMetric"] { background-color: #f8f9fa !important; padding: 1rem; border-radius: 8px; border: 1px solid #dee2e6; }
+            [data-testid="stMetricValue"] { font-size: 2rem !important; font-weight: 700 !important; color: #2c3e50 !important; }
+            [data-testid="stMetricLabel"] { color: #495057 !important; font-weight: 500 !important; font-size: 0.9rem !important; }
+            
+            input, textarea, select, [data-baseweb="input"] { background-color: #ffffff !important; color: #1a1a1a !important; border: 1px solid #ced4da !important; }
+            
+            .stButton > button { background-color: #ffffff !important; color: #1a1a1a !important; border: 2px solid #dee2e6 !important; border-radius: 6px; font-weight: 500; }
+            .stButton > button:hover { background-color: #e9ecef !important; border-color: #1f77b4 !important; }
+            .stButton > button[kind="primary"] { background-color: #1f77b4 !important; color: #ffffff !important; border: none !important; }
+            .stButton > button[kind="primary"]:hover { background-color: #1560a8 !important; }
+            
+            .stTabs [data-baseweb="tab-list"] { background-color: #f8f9fa !important; padding: 0.5rem; border-radius: 8px; }
+            .stTabs [data-baseweb="tab"] { background-color: #ffffff !important; color: #495057 !important; border: 1px solid #dee2e6; border-radius: 6px; }
+            .stTabs [data-baseweb="tab"]:hover { background-color: #e7f3ff !important; color: #1a1a1a !important; }
+            .stTabs [aria-selected="true"] { background-color: #1f77b4 !important; color: #ffffff !important; border-color: #1f77b4 !important; }
+            
+            [data-testid="stDataFrame"], .stDataFrame { background-color: #ffffff !important; border: 2px solid #dee2e6 !important; border-radius: 8px; }
+            thead tr, thead th { background-color: #f8f9fa !important; color: #1a1a1a !important; font-weight: 600 !important; }
+            tbody tr, tbody td { background-color: #ffffff !important; color: #1a1a1a !important; }
+            tbody tr:hover { background-color: #f8f9fa !important; }
+            
+            .stSuccess { background-color: #d4edda !important; color: #155724 !important; border: 2px solid #c3e6cb !important; border-radius: 6px; padding: 1rem; }
+            .stInfo { background-color: #d1ecf1 !important; color: #0c5460 !important; border: 2px solid #bee5eb !important; border-radius: 6px; padding: 1rem; }
+            .stWarning { background-color: #fff3cd !important; color: #856404 !important; border: 2px solid #ffeeba !important; border-radius: 6px; padding: 1rem; }
+            .stError { background-color: #f8d7da !important; color: #721c24 !important; border: 2px solid #f5c6cb !important; border-radius: 6px; padding: 1rem; }
+            
+            .streamlit-expanderHeader { background-color: #f8f9fa !important; color: #1a1a1a !important; border: 1px solid #dee2e6; border-radius: 6px; }
+            [data-testid="stFileUploader"] { background-color: #f8f9fa !important; border: 2px dashed #adb5bd !important; border-radius: 8px; }
+            [data-baseweb="select"], [data-baseweb="popover"] { background-color: #ffffff !important; }
+            [data-testid="stNumberInput"] input { background-color: #ffffff !important; color: #1a1a1a !important; }
+            code { background-color: #f8f9fa !important; color: #e83e8c !important; padding: 0.2rem 0.4rem; border-radius: 3px; }
+            pre { background-color: #f8f9fa !important; color: #1a1a1a !important; padding: 1rem; border-radius: 6px; border: 1px solid #dee2e6; }
+        </style>
+        """
+
+# Apply theme CSS
+st.markdown(get_theme_css(st.session_state.theme), unsafe_allow_html=True)
 
 st.title("💰 Financial Tracker Dashboard")
 
-# Sidebar inputs with better organization
-st.sidebar.title("📊 Quick Actions")
-portfolio_value = st.sidebar.number_input(
-    "💼 Current Portfolio Value",
-    min_value=0.0,
-    value=0.0,
-    step=1000.0,
-    format="%.2f",
-)
-
-# File upload section
-st.sidebar.markdown("---")
-st.sidebar.subheader("📂 Import Transactions")
+# Sidebar file upload section
+st.sidebar.title("📂 Import Data")
 
 MAX_FILE_SIZE_MB = get_max_file_size_mb()
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
@@ -408,7 +273,7 @@ with tab_dashboard:
     render_dashboard(df)
 
 with tab_investments:
-    render_investments(df, portfolio_value)
+    render_investments(df)
 
 with tab_budgets:
     render_budgets()

@@ -52,7 +52,7 @@ def render_dashboard(df: pd.DataFrame) -> None:
 
 def _render_export_controls(df: pd.DataFrame) -> None:
     """Render export buttons."""
-    st.subheader("📊 Dashboard & Export")
+    st.header("📊 Dashboard")
     
     col1, col2, col3 = st.columns([2, 1, 1])
     
@@ -94,6 +94,12 @@ def _render_search_filters(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
     
+    # Initialize session state for filter persistence
+    if "dashboard_search" not in st.session_state:
+        st.session_state.dashboard_search = ""
+    if "dashboard_category" not in st.session_state:
+        st.session_state.dashboard_category = "All"
+    
     # Initialize filter variables with None
     start_date = None
     end_date = None
@@ -106,14 +112,28 @@ def _render_search_filters(df: pd.DataFrame) -> pd.DataFrame:
         with col1:
             search_text = st.text_input(
                 "Search Description",
+                value=st.session_state.dashboard_search,
                 placeholder="Search transactions...",
-                help="Search by description text"
+                help="Search by description text",
+                key="filter_search"
             )
+            st.session_state.dashboard_search = search_text
         
         with col2:
             # Category filter
             categories = ["All"] + sorted(df["Category"].unique().tolist()) if "Category" in df.columns else ["All"]
-            selected_category = st.selectbox("Filter by Category", categories)
+            # Ensure saved category is valid
+            default_idx = 0
+            if st.session_state.dashboard_category in categories:
+                default_idx = categories.index(st.session_state.dashboard_category)
+            selected_category = st.selectbox(
+                "Filter by Category", 
+                categories, 
+                index=default_idx, 
+                key="filter_category",
+                help="Show only transactions in this category"
+            )
+            st.session_state.dashboard_category = selected_category
         
         col3, col4 = st.columns(2)
         
@@ -125,11 +145,11 @@ def _render_search_filters(df: pd.DataFrame) -> pd.DataFrame:
             if not valid_dates.empty:
                 with col3:
                     min_date = valid_dates.min().date()
-                    start_date = st.date_input("From Date", value=min_date, min_value=min_date)
+                    start_date = st.date_input("From Date", value=min_date, min_value=min_date, help="Filter transactions from this date")
                 
                 with col4:
                     max_date = valid_dates.max().date()
-                    end_date = st.date_input("To Date", value=max_date, max_value=max_date)
+                    end_date = st.date_input("To Date", value=max_date, max_value=max_date, help="Filter transactions until this date")
         
         # Amount range filter
         if "Amount" in df.columns:
@@ -137,9 +157,9 @@ def _render_search_filters(df: pd.DataFrame) -> pd.DataFrame:
             if not amounts.empty:
                 col5, col6 = st.columns(2)
                 with col5:
-                    min_amount = st.number_input("Min Amount", value=0.0, step=10.0)
+                    min_amount = st.number_input("Min Amount", value=0.0, step=10.0, help="Minimum transaction amount (absolute value)")
                 with col6:
-                    max_amount = st.number_input("Max Amount", value=float(amounts.max()), step=10.0)
+                    max_amount = st.number_input("Max Amount", value=float(amounts.max()), step=10.0, help="Maximum transaction amount (absolute value)")
     
     # Apply filters
     result = df.copy()
@@ -200,7 +220,7 @@ def _render_charts(analytics_df: pd.DataFrame) -> None:
 
 
 def _render_transaction_table(df: pd.DataFrame) -> None:
-    """Render paginated transaction table with category editing."""
+    """Render paginated transaction table with category editing and bulk actions."""
     # Pagination controls
     rows_per_page = get_rows_per_page()
     total_rows = len(df)
@@ -228,11 +248,19 @@ def _render_transaction_table(df: pd.DataFrame) -> None:
     # Calculate slice for current page
     start_idx = (st.session_state.current_page - 1) * rows_per_page
     end_idx = min(start_idx + rows_per_page, total_rows)
-    page_df = df.iloc[start_idx:end_idx]
+    page_df = df.iloc[start_idx:end_idx].copy()
+    
+    # Add selection column for bulk operations
+    page_df.insert(0, "Select", False)
     
     edited_df = st.data_editor(
         page_df,
         column_config={
+            "Select": st.column_config.CheckboxColumn(
+                "✓",
+                help="Select transactions for bulk actions",
+                default=False,
+            ),
             "Category": st.column_config.SelectboxColumn(
                 "Category",
                 options=CATEGORIES,
@@ -244,13 +272,54 @@ def _render_transaction_table(df: pd.DataFrame) -> None:
         width='stretch',
     )
     
-    if st.button("Save Category Overrides"):
-        overrides = get_category_overrides()
-        for idx, row in edited_df.iterrows():
-            if "Category" in page_df.columns and idx in page_df.index:
-                orig_val = page_df.loc[page_df.index == idx, "Category"].values
-                orig_category = orig_val[0] if len(orig_val) > 0 else None
-                if row["Category"] != orig_category:
-                    overrides[row["Description"]] = row["Category"]
-        save_overrides(overrides)
-        st.success("Category overrides saved! Changes will apply on future imports.")
+    # Count selected rows
+    selected_count = edited_df["Select"].sum() if "Select" in edited_df.columns else 0
+    
+    # Bulk action controls
+    st.markdown("---")
+    bulk_col1, bulk_col2, bulk_col3 = st.columns([1, 2, 2])
+    
+    with bulk_col1:
+        st.caption(f"**{selected_count}** selected")
+    
+    with bulk_col2:
+        bulk_category = st.selectbox(
+            "Bulk assign category",
+            options=[""] + CATEGORIES,
+            help="Select a category to apply to all selected transactions",
+            label_visibility="collapsed",
+            placeholder="Assign category to selected..."
+        )
+    
+    with bulk_col3:
+        col_apply, col_save = st.columns(2)
+        with col_apply:
+            if st.button("🏷️ Apply to Selected", disabled=(selected_count == 0 or not bulk_category)):
+                # Apply bulk category change
+                overrides = get_category_overrides()
+                applied = 0
+                for idx, row in edited_df.iterrows():
+                    if row.get("Select", False):
+                        overrides[row["Description"]] = bulk_category
+                        applied += 1
+                save_overrides(overrides)
+                st.toast(f"✅ Applied '{bulk_category}' to {applied} transactions!", icon="🏷️")
+                st.rerun()
+        
+        with col_save:
+            if st.button("💾 Save Changes", type="primary"):
+                overrides = get_category_overrides()
+                changes = 0
+                # Get original values (without Select column)
+                orig_page_df = df.iloc[start_idx:end_idx]
+                for i, (idx, row) in enumerate(edited_df.iterrows()):
+                    if "Category" in orig_page_df.columns and i < len(orig_page_df):
+                        orig_category = orig_page_df.iloc[i]["Category"]
+                        if row["Category"] != orig_category:
+                            overrides[row["Description"]] = row["Category"]
+                            changes += 1
+                save_overrides(overrides)
+                if changes > 0:
+                    st.toast(f"✅ Saved {changes} category change(s)!", icon="✅")
+                else:
+                    st.toast("No changes to save", icon="ℹ️")

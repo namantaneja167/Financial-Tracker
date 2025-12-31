@@ -11,8 +11,8 @@ from financial_tracker.database import get_budgets, save_budgets, get_monthly_sp
 
 def render_budgets() -> None:
     """Render the budgets page with budget management and status."""
-    st.subheader("Monthly Budgets")
-    st.markdown("Set spending limits per category. Dashboard will show warnings when over budget.")
+    st.header("💰 Monthly Budgets")
+    st.markdown("Set spending limits per category to track your spending habits.")
     
     budgets = get_budgets()
     budget_data = budgets if budgets else []
@@ -42,12 +42,12 @@ def render_budgets() -> None:
         width='stretch',
     )
     
-    if st.button("Save Budgets"):
+    if st.button("💾 Save Budgets", type="primary"):
         budgets_to_save = edited_budget_df.to_dict('records')
         # Filter out zero budgets
         budgets_to_save = [b for b in budgets_to_save if b["monthly_limit"] > 0]
         save_budgets(budgets_to_save)
-        st.success("Budgets saved!")
+        st.toast("✅ Budgets saved!", icon="✅")
     
     # Show current month budget status
     st.subheader("Current Month Budget Status")
