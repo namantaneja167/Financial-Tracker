@@ -1,0 +1,58 @@
+# Financial Tracker Configuration
+# Copy this file to config.yaml and customize settings
+
+# Ollama LLM Configuration
+ollama:
+  base_url: "http://localhost:11434"
+  model: "gemini-3-flash-preview:cloud"
+  timeout: 30  # seconds
+  max_retries: 3
+
+# Categorization Settings
+categorization:
+  similarity_threshold: 0.6  # Minimum cosine similarity for embeddings match (0-1)
+  use_embeddings: true  # Whether to use sentence-transformers
+  embedding_model: "all-MiniLM-L6-v2"
+  
+# Transaction Categories
+categories:
+  - "Rent"
+  - "Groceries"
+  - "Dining"
+  - "Transport"
+  - "Utilities"
+  - "Investments"
+  - "Income"
+  - "Shopping"
+  - "Misc"
+
+# Recurring Transaction Detection
+recurring:
+  min_occurrences: 3  # Minimum transactions to be considered recurring
+  similarity_threshold: 0.85  # Merchant name similarity threshold
+  interval_tolerance_days: 5  # Days of tolerance for interval matching
+
+# File Upload Settings
+file_upload:
+  max_size_mb: 10
+  allowed_pdf_types: ["application/pdf"]
+  allowed_csv_types: ["text/csv", "text/plain"]
+
+# Database Settings
+database:
+  path: "data/financial_tracker.db"
+  backup_enabled: false
+  backup_interval_days: 7
+
+# UI Settings
+ui:
+  rows_per_page: 100
+  theme: "light"  # light or dark
+  default_currency: "USD"
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  file: "data/app.log"
+  max_size_mb: 10
+  backup_count: 3
