@@ -17,7 +17,7 @@ DEFAULT_CONFIG = {
     "ollama": {
         "base_url": "http://localhost:11434",
         "model": "gemma3:4b",
-        "timeout": 30,
+        "timeout": 120,
         "api_key": None,
         "max_retries": 3,
     },

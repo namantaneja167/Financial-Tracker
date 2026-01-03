@@ -11,3 +11,6 @@ Traceback (most recent call last):
   File "D:\Code\Financial Tracker\.venv\lib\site-packages\tornado\websocket.py", line 1115, in wrapper
     raise WebSocketClosedError()
 tornado.websocket.WebSocketClosedError
+2026-01-01 14:52:51 - INFO - financial_tracker.ollama_client - Sending 82746 characters to Ollama model gemma3:4b
+2026-01-01 14:52:54 - INFO - financial_tracker.ollama_client - Ollama returned 2 characters
+2026-01-01 14:52:54 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {}

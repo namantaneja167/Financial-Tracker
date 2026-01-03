@@ -76,37 +76,74 @@ def _normalize_record(record: Dict[str, Any]) -> Dict[str, Any]:
     return normalized
 
 
+def _extract_transaction_list(parsed: Any) -> List[Dict[str, Any]]:
+    """Try to pull a list of transactions out of various response shapes."""
+    if isinstance(parsed, list):
+        return parsed
+    if isinstance(parsed, dict):
+        # Common keys used by different models
+        for key in ("transactions", "data", "items", "records", "result"):
+            val = parsed.get(key)
+            if isinstance(val, list):
+                return val
+        # If dict values contain a list (possibly nested), return the first list found
+        stack = list(parsed.values())
+        while stack:
+            v = stack.pop(0)
+            if isinstance(v, list):
+                return v
+            if isinstance(v, dict):
+                stack.extend(v.values())
+    raise ValueError("Model did not return a JSON array of transactions")
+
+
 def ollama_extract_transactions(raw_text: str) -> List[Dict[str, Any]]:
     """Call local Ollama and ask it to output structured transaction JSON."""
+    
+    if not raw_text or len(raw_text.strip()) < 50:
+        raise ValueError(f"PDF text is too short or empty ({len(raw_text)} chars). Cannot extract transactions.")
+
+    # For very large PDFs, truncate to avoid overwhelming smaller models
+    max_chars = 50000
+    if len(raw_text) > max_chars:
+        logger.warning(f"PDF text is {len(raw_text)} chars, truncating to {max_chars} for model processing")
+        raw_text = raw_text[:max_chars] + "\n... [truncated]"
+
+    logger.info(f"Sending {len(raw_text)} characters to Ollama model {get_ollama_model()}")
 
     prompt = (
-        "You are a precise data extraction engine.\n"
-        "Extract bank statement transactions from the RAW TEXT below.\n\n"
-        "Return ONLY valid JSON (no markdown, no commentary).\n"
-        "Output format must be a JSON array of objects.\n"
-        "Each object MUST have these keys exactly: Date, Description, Amount, Type, Balance\n"
-        "- Date: keep the statement date string as written (e.g., 2025-12-01 or 12/01/2025).\n"
-        "- Description: merchant/payee + memo text.\n"
-        "- Amount: a number (negative for debits is allowed, but not required if Type is set).\n"
-        "- Type: must be either 'Debit' or 'Credit'.\n"
-        "- Balance: number if present on the statement line, otherwise null.\n"
-        "If you are unsure about a field, use null (except Description which can be empty string).\n\n"
-        "RAW TEXT:\n"
-        + raw_text
+        "Extract bank transactions from this statement. Return JSON array format:\n"
+        "[{\"Date\": \"YYYY-MM-DD\", \"Description\": \"text\", \"Amount\": 123.45, \"Type\": \"Debit\" or \"Credit\", \"Balance\": 1000.00}]\n\n"
+        "Rules:\n"
+        "- Return ONLY the JSON array, no other text\n"
+        "- Date format: keep as-is from statement\n"
+        "- Amount: number only\n"
+        "- Type: must be 'Debit' or 'Credit'\n"
+        "- Balance: running balance if shown, otherwise null\n\n"
+        f"Statement text:\n{raw_text}"
     )
 
     url = f"{get_ollama_url()}/api/generate"
-    resp = requests.post(
-        url,
-        json={
-            "model": get_ollama_model(),
-            "prompt": prompt,
-            "stream": False,
-            "options": {"temperature": 0},
-        },
-        headers=get_ollama_headers(),
-        timeout=get_ollama_timeout(),
-    )
+    try:
+        resp = requests.post(
+            url,
+            json={
+                "model": get_ollama_model(),
+                "prompt": prompt,
+                "stream": False,
+                "format": "json",  # force JSON-only response if model supports it
+                "options": {
+                    "temperature": 0,
+                },
+            },
+            headers=get_ollama_headers(),
+            timeout=get_ollama_timeout(),
+        )
+    except requests.exceptions.ReadTimeout as exc:
+        raise RuntimeError(
+            f"Ollama timed out after {get_ollama_timeout()}s. The PDF may be too large or the model is slow. "
+            "Try a smaller PDF or increase the timeout in config.yaml (ollama.timeout)."
+        ) from exc
 
     if resp.status_code == 401:
         raise RuntimeError(
@@ -122,16 +159,26 @@ def ollama_extract_transactions(raw_text: str) -> List[Dict[str, Any]]:
 
     content = (data.get("response") or "").strip()
 
-    parsed = _extract_json_block(content)
-    if isinstance(parsed, dict):
-        parsed = parsed.get("transactions")
+    logger.info(f"Ollama returned {len(content)} characters")
+    
+    if not content:
+        raise ValueError("Ollama returned an empty response. The model may not support this PDF format or the text is unreadable.")
 
-    if not isinstance(parsed, list):
-        raise ValueError("Model did not return a JSON array of transactions")
+    try:
+        parsed = _extract_transaction_list(_extract_json_block(content))
+    except ValueError as exc:
+        snippet = content[:500]
+        logger.error(f"Failed to parse Ollama response. First 500 chars: {snippet}")
+        raise ValueError(f"Model did not return a JSON array of transactions. Response snippet: {snippet}") from exc
 
     normalized: List[Dict[str, Any]] = []
     for item in parsed:
         if isinstance(item, dict):
             normalized.append(_normalize_record(item))
+    
+    logger.info(f"Extracted {len(normalized)} transactions from Ollama response")
+    
+    if not normalized:
+        raise ValueError("Ollama returned JSON but no valid transaction records were found. The model may have misunderstood the statement format.")
 
     return normalized
