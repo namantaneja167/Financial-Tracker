@@ -362,6 +362,35 @@ class TestOllamaExtractTransactions:
     @patch('financial_tracker.ollama_client.get_ollama_url')
     @patch('financial_tracker.ollama_client.get_ollama_model')
     @patch('financial_tracker.ollama_client.get_ollama_timeout')
+    def test_extract_transactions_ollama_404_error(self, mock_timeout, mock_model, mock_url, mock_post):
+        """Test handling of Ollama 404 error response."""
+        mock_url.return_value = "http://localhost:11434"
+        mock_model.return_value = "llama3.2:latest"
+        mock_timeout.return_value = 30
+        
+        # Mock response with 404 error as JSON string in "response" field (how Ollama actually returns it)
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "model": "llama3.2:latest",
+            "response": '{"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}',
+            "done": True
+        }
+        mock_response.raise_for_status = Mock()  # Don't raise, error is in JSON
+        mock_post.return_value = mock_response
+        
+        # Call function and expect RuntimeError
+        with pytest.raises(RuntimeError) as exc_info:
+            ollama_extract_transactions("Bank statement text")
+        
+        # Verify error message mentions 404 and helpful instructions
+        assert "404" in str(exc_info.value)
+        assert "not loaded" in str(exc_info.value)
+        assert "ollama pull" in str(exc_info.value)
+
+    @patch('financial_tracker.ollama_client.requests.post')
+    @patch('financial_tracker.ollama_client.get_ollama_url')
+    @patch('financial_tracker.ollama_client.get_ollama_model')
+    @patch('financial_tracker.ollama_client.get_ollama_timeout')
     def test_extract_transactions_mixed_valid_invalid(self, mock_timeout, mock_model, mock_url, mock_post):
         """Test extraction with mix of valid dict and invalid items."""
         mock_url.return_value = "http://localhost:11434"

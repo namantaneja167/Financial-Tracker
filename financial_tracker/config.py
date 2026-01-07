@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG = {
     "ollama": {
         "base_url": "http://localhost:11434",
-        "model": "gemma3:4b",
-        "timeout": 120,
+        "model": "llama3.2:latest",
+        "timeout": 500,
         "api_key": None,
         "max_retries": 3,
     },
@@ -201,3 +201,12 @@ def get_log_level() -> str:
 def get_log_file() -> str:
     """Get log file path."""
     return get("logging.file", "data/app.log")
+
+
+def get_google_api_key() -> Optional[str]:
+    """Get Google API Key from env."""
+    return os.getenv("GOOGLE_API_KEY")
+
+def get_gemini_model() -> str:
+    """Get Gemini model name."""
+    return get("gemini.model", "gemini-3-flash-preview")

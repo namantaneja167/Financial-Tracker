@@ -1,35 +1,24 @@
-# 💰 Financial Tracker
+# 💰 Financial Tracker Pro Max
 
-A personal finance dashboard powered by Streamlit, designed to give you a clear and comprehensive overview of your financial life. This application allows you to import bank statements from PDF or CSV files, automatically categorizes your transactions using AI, and provides visualizations to help you understand your spending habits, track your net worth, and manage your budget.
+A personal finance dashboard powered by **Next.js** and **FastAPI**, designed to give you a premium, "Pro Max" overview of your financial life. This application allows you to import bank statements from PDF or CSV files, automatically categorizes your transactions using AI, and provides fluid bento-grid visualizations to help you understand your spending habits.
 
-![Financial Tracker Dashboard](httpsp://i.imgur.com/your-screenshot.png) <!-- Replace with an actual screenshot -->
+![Financial Tracker Dashboard](https://i.imgur.com/your-screenshot.png) <!-- Replace with an actual screenshot -->
 
 ## ✨ Key Features
 
--   **📄 Import from PDF & CSV**: Seamlessly import your transaction history from both PDF bank statements and CSV files.
--   **🤖 AI-Powered Categorization**: Leveraging the power of local language models (via Ollama), the app automatically categorizes your expenses and income.
--   **📊 Interactive Dashboard**: A comprehensive overview of your finances, including spending by category, income vs. expense, and recent transactions.
--   **📈 Net Worth Tracking**: Monitor your net worth over time by adding your assets and liabilities.
--   **💰 Budget Management**: Set monthly budgets for different categories and track your progress.
--   **🔄 Recurring Transactions**: Keep an eye on your subscriptions and recurring payments.
--   **💼 Investment Tracking**: A dedicated section to monitor the performance of your investment portfolio.
--   **Normalize Merchants**: Clean up and group messy merchant names (e.g., "AMZNMKTPLACE" becomes "Amazon").
--   **🌙 Light & Dark Themes**: Choose a theme that's easy on your eyes.
--   **🔒 Privacy-Focused**: Your financial data stays on your local machine.
+-   **Pro Max UI**: A stunning, dark-mode first interface built with Tailwind CSS v4 and Framer Motion.
+-   **📄 Import from PDF & CSV**: Seamlessly import your transaction history.
+-   **🤖 AI-Powered Categorization**: Leveraging local language models (Ollama), the app automatically categorizes transactions.
+-   **📊 Bento Grid Dashboard**: A responsive grid showing Net Worth, Monthly Spend, and Trends at a glance.
+-   **🔒 Privacy-Focused**: Your financial data stays on your local machine. Backend runs locally.
 
 ## 🚀 Getting Started
 
-Follow these instructions to get the Financial Tracker up and running on your local machine.
-
 ### Prerequisites
 
+-   **Node.js 18+**
 -   **Python 3.10+**
--   **Ollama**: This application uses a locally running Ollama instance for AI-based transaction extraction and categorization.
-    -   [Download and install Ollama](https://ollama.com)
-    -   Pull a model for the application to use. For example:
-        ```bash
-        ollama pull llama3
-        ```
+-   **Ollama**: [Download and install Ollama](https://ollama.com).
 
 ### Installation
 
@@ -39,67 +28,48 @@ Follow these instructions to get the Financial Tracker up and running on your lo
     cd financial-tracker
     ```
 
-2.  **Create and activate a virtual environment:**
-    -   On Windows:
-        ```powershell
-        python -m venv .venv
-        .\.venv\Scripts\Activate.ps1
-        ```
-    -   On macOS/Linux:
-        ```bash
-        python3 -m venv .venv
-        source .venv/bin/activate
-        ```
+2.  **Setup Backend:**
+    ```powershell
+    # Create virtual env
+    python -m venv .venv
+    .\.venv\Scripts\Activate.ps1
+    
+    # Install dependencies
+    pip install -r backend/requirements.txt
+    ```
 
-3.  **Install the required packages:**
-    ```bash
-    pip install -r requirements.txt
+3.  **Setup Frontend:**
+    ```powershell
+    cd frontend
+    npm install
     ```
 
 ### Running the Application
 
-1.  **Ensure Ollama is running** in the background.
+You need to run both the backend (API) and frontend (UI) terminals.
 
-2.  **Run the Streamlit app:**
-    ```bash
-    streamlit run app.py
-    ```
+**Terminal 1: Backend**
+```powershell
+# From root directory
+uvicorn backend.main:app --reload
+```
+*API running at http://localhost:8000*
 
-3.  Open your web browser and navigate to the URL provided by Streamlit (usually `http://localhost:8501`).
-
-## usage
-
-### Importing Data
-
-1.  On the left sidebar, you'll find the **"📂 Import Data"** section.
-2.  Choose the import type: **"Bank Statement PDF"** or **"CSV"**.
-3.  Click the **"Upload..."** button and select the file from your computer.
-
-The application will process the file, extract the transactions, categorize them, and add them to your dashboard.
+**Terminal 2: Frontend**
+```powershell
+# From root directory
+cd frontend
+npm run dev
+```
+*UI running at http://localhost:3000*
 
 ## ⚙️ Configuration
 
-You can configure the application by setting environment variables.
-
--   `OLLAMA_HOST`: The URL of your Ollama instance.
-    -   Default: `http://localhost:11434`
--   `OLLAMA_MODEL`: The name of the Ollama model to use.
-    -   Default: `gemma3:4b`
--   `OLLAMA_API_KEY`: Bearer token if your Ollama endpoint requires authentication (e.g., secured or cloud endpoint).
-    -   Default: none (not needed for local default install)
--   `MAX_FILE_SIZE_MB`: The maximum file size for uploads in megabytes.
-    -   Default: `20`
-
-**Example (PowerShell):**
-```powersall
-$env:OLLAMA_MODEL="mistral"
-```
+-   `OLLAMA_HOST`: Default `http://localhost:11434`
+-   `OLLAMA_MODEL`: Default `gemma3:4b` (Change in `financial_tracker/config.py` or env vars)
 
 ## 🛠️ Built With
 
--   [Streamlit](https://streamlit.io/) - The web framework for the UI
--   [Pandas](https://pandas.pydata.org/) - For data manipulation and analysis
--   [Ollama](https://ollama.com/) - For local AI-powered features
--   [Plotly](https://plotly.com/python/) - For interactive charts and graphs
-
----
+-   **Frontend**: Next.js 14, Tailwind CSS v4, Framer Motion, Shadcn Concepts
+-   **Backend**: FastAPI, Pandas
+-   **AI**: Ollama

@@ -89,191 +89,112 @@ def _init_schema(conn: sqlite3.Connection):
         )
     """)
     
+    # Financial Goals table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS goals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            target_amount REAL NOT NULL,
+            current_amount REAL NOT NULL DEFAULT 0,
+            target_date TEXT,
+            icon TEXT,
+            is_completed INTEGER DEFAULT 0
+        )
+    """)
+
+    # Assets table (Portfolio)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS assets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            quantity REAL NOT NULL DEFAULT 1.0,
+            value REAL NOT NULL,
+            last_updated TEXT
+        )
+    """)
+    
     conn.commit()
 
+# ... existing code ...
 
-def insert_transactions(transactions: List[Dict], source_file: str = "manual") -> Tuple[int, int]:
-    """
-    Insert transactions into database with deduplication and validation.
-    
-    Args:
-        transactions: List of transaction dictionaries
-        source_file: Source file name for tracking
-        
-    Returns:
-        (inserted_count, skipped_count)
-        
-    Raises:
-        ValidationError: If transaction data is invalid
-    """
+def get_goals() -> List[Dict]:
+    """Retrieve all financial goals."""
     with _get_connection() as conn:
         cursor = conn.cursor()
+        cursor.execute("SELECT id, name, target_amount, current_amount, target_date, icon, is_completed FROM goals ORDER BY target_date")
         
-        inserted = 0
-        skipped = 0
-        imported_at = datetime.now().isoformat()
-        
-        for txn in transactions:
-            try:
-                # Validate transaction data
-                validated = validate_transaction(txn)
-                
-                cursor.execute("""
-                    INSERT INTO transactions (date, description, amount, type, balance, category, merchant, source_file, imported_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    str(validated.Date),
-                    validated.Description,
-                    validated.Amount,
-                    validated.Type,
-                    validated.Balance,
-                    validated.Category,
-                    validated.Merchant,
-                    source_file,
-                    imported_at
-                ))
-                inserted += 1
-            except sqlite3.IntegrityError:
-                # Duplicate transaction (same date, description, amount)
-                skipped += 1
-            except ValidationError as e:
-                logger.warning(f"Skipping invalid transaction: {e}")
-                skipped += 1
-        
-        conn.commit()
-        
-        return inserted, skipped
+        goals = []
+        for row in cursor.fetchall():
+            goals.append({
+                "id": row[0],
+                "name": row[1],
+                "target_amount": row[2],
+                "current_amount": row[3],
+                "target_date": row[4],
+                "icon": row[5] or "PiggyBank",
+                "is_completed": bool(row[6])
+            })
+        return goals
 
-
-def get_all_transactions() -> pd.DataFrame:
-    """Retrieve all transactions as a DataFrame."""
-    with _get_connection() as conn:
-        df = pd.read_sql_query("""
-            SELECT date, description, amount, type, balance, category, merchant, source_file, imported_at
-            FROM transactions
-            ORDER BY date DESC
-        """, conn)
-    
-    # Normalize column names to match app expectations
-    df.columns = ["Date", "Description", "Amount", "Type", "Balance", "Category", "Merchant", "SourceFile", "ImportedAt"]
-    
-    if not df.empty and "Date" in df.columns:
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce").dt.date
-    
-    return df
-
-
-def update_transaction_category(date: str, description: str, amount: float, new_category: str) -> None:
-    """
-    Update category for a specific transaction.
-    
-    Args:
-        date: Transaction date
-        description: Transaction description
-        amount: Transaction amount
-        new_category: New category to assign
-    """
+def add_goal(name: str, target_amount: float, target_date: str = None, icon: str = None) -> int:
+    """Add a new financial goal."""
     with _get_connection() as conn:
         cursor = conn.cursor()
-        
         cursor.execute("""
-            UPDATE transactions
-            SET category = ?
-            WHERE date = ? AND description = ? AND amount = ?
-        """, (new_category, date, description, amount))
-        
+            INSERT INTO goals (name, target_amount, current_amount, target_date, icon)
+            VALUES (?, ?, 0, ?, ?)
+        """, (name, target_amount, target_date, icon))
         conn.commit()
+        return cursor.lastrowid
 
-
-def save_portfolio_snapshot(cash_balance: float, portfolio_value: float) -> None:
-    """
-    Save or update portfolio snapshot for today.
-    
-    Args:
-        cash_balance: Current cash balance
-        portfolio_value: Current portfolio value
-    """
+def update_goal_progress(goal_id: int, amount: float) -> None:
+    """Update the current amount of a goal (add to it)."""
     with _get_connection() as conn:
         cursor = conn.cursor()
-        
+        cursor.execute("""
+            UPDATE goals 
+            SET current_amount = current_amount + ?,
+                is_completed = CASE WHEN (current_amount + ?) >= target_amount THEN 1 ELSE 0 END
+            WHERE id = ?
+        """, (amount, amount, goal_id))
+        conn.commit()
+
+def delete_goal(goal_id: int) -> None:
+    """Delete a goal."""
+    with _get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM goals WHERE id = ?", (goal_id,))
+        conn.commit()
+
+# --- Asset / Portfolio Functions ---
+
+def get_assets() -> List[Dict]:
+    """Retrieve all assets."""
+    with _get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, type, quantity, value, last_updated FROM assets ORDER BY value DESC")
+        rows = cursor.fetchall()
+        return [
+            {"id": r[0], "name": r[1], "type": r[2], "quantity": r[3], "value": r[4], "last_updated": r[5]} 
+            for r in rows
+        ]
+
+def add_asset(name: str, type: str, value: float, quantity: float = 1.0) -> int:
+    """Add a new asset manually."""
+    with _get_connection() as conn:
         today = date.today().isoformat()
-        net_worth = cash_balance + portfolio_value
-        
+        cursor = conn.cursor()
         cursor.execute("""
-            INSERT OR REPLACE INTO portfolio_snapshots (date, cash_balance, portfolio_value, net_worth)
-            VALUES (?, ?, ?, ?)
-        """, (today, cash_balance, portfolio_value, net_worth))
-        
+            INSERT INTO assets (name, type, quantity, value, last_updated)
+            VALUES (?, ?, ?, ?, ?)
+        """, (name, type, quantity, value, today))
         conn.commit()
+        return cursor.lastrowid
 
-
-def get_portfolio_history() -> pd.DataFrame:
-    """Retrieve portfolio snapshot history as DataFrame."""
-    with _get_connection() as conn:
-        df = pd.read_sql_query("""
-            SELECT date, cash_balance, portfolio_value, net_worth
-            FROM portfolio_snapshots
-            ORDER BY date ASC
-        """, conn)
-    
-    if not df.empty:
-        df.columns = ["Date", "CashBalance", "PortfolioValue", "NetWorth"]
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-    
-    return df
-
-
-def get_budgets() -> List[Dict]:
-    """Retrieve all budgets."""
+def delete_asset(asset_id: int) -> None:
+    """Delete an asset."""
     with _get_connection() as conn:
         cursor = conn.cursor()
-        
-        cursor.execute("SELECT category, monthly_limit FROM budgets ORDER BY category")
-        budgets = [{"category": row[0], "monthly_limit": row[1]} for row in cursor.fetchall()]
-        
-        return budgets
-
-
-def save_budgets(budgets: List[Dict]) -> None:
-    """
-    Replace all budgets with new list.
-    
-    Args:
-        budgets: List of budget dictionaries with category and monthly_limit
-    """
-    with _get_connection() as conn:
-        cursor = conn.cursor()
-        
-        cursor.execute("DELETE FROM budgets")
-        
-        for budget in budgets:
-            cursor.execute("""
-                INSERT INTO budgets (category, monthly_limit)
-                VALUES (?, ?)
-            """, (budget["category"], budget["monthly_limit"]))
-        
+        cursor.execute("DELETE FROM assets WHERE id = ?", (asset_id,))
         conn.commit()
-
-
-def get_monthly_spend_by_category(year: int, month: int) -> Dict[str, float]:
-    """Get total spend by category for a specific month."""
-    with _get_connection() as conn:
-        cursor = conn.cursor()
-        
-        # Calculate month boundaries: first day of month to first day of next month
-        start_date = f"{year:04d}-{month:02d}-01"
-        if month == 12:
-            end_date = f"{year + 1:04d}-01-01"
-        else:
-            end_date = f"{year:04d}-{month + 1:02d}-01"
-        
-        cursor.execute("""
-            SELECT category, SUM(amount) as total
-            FROM transactions
-            WHERE date >= ? AND date < ? AND type = 'Debit' AND category != ''
-            GROUP BY category
-        """, (start_date, end_date))
-        
-        spend_by_category = {row[0]: row[1] for row in cursor.fetchall()}
-        
-        return spend_by_category

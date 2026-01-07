@@ -14,3 +14,134 @@ tornado.websocket.WebSocketClosedError
 2026-01-01 14:52:51 - INFO - financial_tracker.ollama_client - Sending 82746 characters to Ollama model gemma3:4b
 2026-01-01 14:52:54 - INFO - financial_tracker.ollama_client - Ollama returned 2 characters
 2026-01-01 14:52:54 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {}
+2026-01-04 13:05:38 - WARNING - financial_tracker.ollama_client - PDF text is 82746 chars, truncating to 50000 for model processing
+2026-01-04 13:05:38 - INFO - financial_tracker.ollama_client - Sending 50016 characters to Ollama model gemma3:4b
+2026-01-04 13:08:14 - WARNING - financial_tracker.ollama_client - PDF text is 82746 chars, truncating to 50000 for model processing
+2026-01-04 13:08:14 - INFO - financial_tracker.ollama_client - Sending 50016 characters to Ollama model llama3.2:latest
+2026-01-04 13:11:42 - WARNING - financial_tracker.ollama_client - PDF text is 82746 chars, truncating to 50000 for model processing
+2026-01-04 13:11:42 - INFO - financial_tracker.ollama_client - Sending 50016 characters to Ollama model llama3.2:latest
+2026-01-04 13:11:50 - INFO - financial_tracker.ollama_client - Ollama returned 506 characters
+2026-01-04 13:11:50 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"date": "01-10-2024", "amount": 52014.86, "type": "ACH/BANAYANTREESERVICESL/ICI", "description": "BANAYANTREESERVICESL/ICI", "id": "C7021012232001101", "name": "BANAYANTREP3X1LoXQAqD4XL", "accountNumber": "427521962687", "bankName": "ICICI Bank", "branchCode": "55D0D", "ifscCode": "B7ED0606FDA94869324EBECC", "transactionId": "5035.40", "transactionDate": "01-10-2024", "transactionTime": "15:04:05 IST", "amountPaid": 5000, "amountReceived": 5000, "balance": 10000, "status": "Successful", "remark
+2026-01-04 13:14:39 - WARNING - financial_tracker.ollama_client - PDF text is 82746 chars, truncating to 50000 for model processing
+2026-01-04 13:14:39 - INFO - financial_tracker.ollama_client - Sending 50016 characters to Ollama model llama3.2:latest
+2026-01-04 13:14:47 - INFO - financial_tracker.ollama_client - Ollama returned 506 characters
+2026-01-04 13:14:47 - WARNING - financial_tracker.ollama_client - Single transaction object detected, wrapping in list
+2026-01-04 13:14:47 - INFO - financial_tracker.ollama_client - Extracted 1 transactions from Ollama response
+2026-01-04 13:15:25 - INFO - sentence_transformers.SentenceTransformer - Use pytorch device_name: cpu
+2026-01-04 13:15:25 - INFO - sentence_transformers.SentenceTransformer - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2026-01-04 13:15:29 - WARNING - financial_tracker.database - Skipping invalid transaction: 1 validation error for Transaction
+Type
+  Value error, Invalid transaction type: Ach/Banayantreeservicesl/Ici. Must be Debit or Credit. [type=value_error, input_value='Ach/Banayantreeservicesl/Ici', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/value_error
+2026-01-04 13:23:27 - INFO - financial_tracker.ollama_client - Sending 82746 characters to Ollama model llama3.2:latest
+2026-01-04 13:23:35 - INFO - financial_tracker.ollama_client - Ollama returned 60 characters
+2026-01-04 13:23:35 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"row": 1, "colspan": 12, "data": "Date", "align": "center"}
+2026-01-04 13:26:36 - WARNING - financial_tracker.ollama_client - PDF text is 200266 chars, truncating to 100000 for model processing
+2026-01-04 13:26:36 - INFO - financial_tracker.ollama_client - Sending 100016 characters to Ollama model llama3.2:latest
+2026-01-04 13:26:40 - INFO - financial_tracker.ollama_client - Ollama returned 159 characters
+2026-01-04 13:26:40 - WARNING - financial_tracker.ollama_client - Single transaction object detected, wrapping in list
+2026-01-04 13:26:40 - INFO - financial_tracker.ollama_client - Extracted 1 transactions from Ollama response
+2026-01-04 13:26:50 - INFO - sentence_transformers.SentenceTransformer - Use pytorch device_name: cpu
+2026-01-04 13:26:50 - INFO - sentence_transformers.SentenceTransformer - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
+2026-01-04 13:26:54 - WARNING - financial_tracker.database - Skipping invalid transaction: 2 validation errors for Transaction
+Description
+  String should have at least 1 character [type=string_too_short, input_value='', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/string_too_short
+Amount
+  Input should be less than 1000000 [type=less_than, input_value=1000000.0, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.12/v/less_than
+2026-01-04 13:29:56 - WARNING - financial_tracker.ollama_client - PDF text is 200266 chars, truncating to 100000 for model processing
+2026-01-04 13:29:56 - INFO - financial_tracker.ollama_client - Sending 100016 characters to Ollama model llama3.2:latest
+2026-01-04 13:30:00 - INFO - financial_tracker.ollama_client - Ollama returned 159 characters
+2026-01-04 13:30:00 - WARNING - financial_tracker.ollama_client - Single transaction object detected, wrapping in list
+2026-01-04 13:30:00 - INFO - financial_tracker.ollama_client - Extracted 0 valid transactions from Ollama response (filtered 1 metadata/invalid rows)
+2026-01-04 13:30:00 - WARNING - financial_tracker.ollama_client - Ollama returned no valid transaction records. The statement may be empty or the format may not have been recognized.
+2026-01-04 13:32:23 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:32:23 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:32:27 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:32:27 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:35:35 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:35:35 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:35:39 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:35:39 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:36:20 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:36:20 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:36:24 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:36:24 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:38:53 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:38:53 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:38:57 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:38:57 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:41:44 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:41:44 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:41:48 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:41:48 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:42:30 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:42:30 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:42:34 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:42:34 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:45:12 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:45:12 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:45:15 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:45:15 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:46:36 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:46:36 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:46:39 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:46:39 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:47:33 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:47:33 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:47:36 - INFO - financial_tracker.ollama_client - Ollama response parsed successfully. Keys: ['model', 'created_at', 'response', 'done', 'done_reason', 'context', 'total_duration', 'load_duration', 'prompt_eval_count', 'prompt_eval_duration', 'eval_count', 'eval_duration']
+2026-01-04 13:47:36 - INFO - financial_tracker.ollama_client - Ollama returned 102 characters
+2026-01-04 13:47:36 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: {"error": {"code": 404, "message": "Not Found", "data": {"status_code": 404}},"info":"","headers": {}}
+2026-01-04 13:49:37 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 150000 for model processing
+2026-01-04 13:49:37 - INFO - financial_tracker.ollama_client - Sending 150004 characters to Ollama model llama3.2:latest
+2026-01-04 13:49:40 - ERROR - financial_tracker.ollama_client - ERROR JSON DETECTED IN RESPONSE CONTENT!
+2026-01-04 13:54:04 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 50000 for model processing
+2026-01-04 13:54:04 - INFO - financial_tracker.ollama_client - Sending 50009 characters to Ollama model llama3.2:latest
+2026-01-04 13:54:09 - INFO - financial_tracker.ollama_client - Ollama returned 229 characters
+2026-01-04 13:54:09 - WARNING - financial_tracker.ollama_client - Single transaction object detected, wrapping in list
+2026-01-04 13:54:09 - INFO - financial_tracker.ollama_client - Extracted 0 valid transactions from Ollama response (filtered 1 metadata/invalid rows)
+2026-01-04 13:54:09 - WARNING - financial_tracker.ollama_client - Ollama returned no valid transaction records. The statement may be empty or the format may not have been recognized.
+2026-01-04 13:55:50 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 80000 for model processing
+2026-01-04 13:55:50 - INFO - financial_tracker.ollama_client - Sending 80009 characters to Ollama model llama3.2:latest
+2026-01-04 13:55:54 - ERROR - financial_tracker.ollama_client - ERROR JSON DETECTED IN RESPONSE CONTENT!
+2026-01-04 13:56:47 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 60000 for model processing
+2026-01-04 13:56:47 - INFO - financial_tracker.ollama_client - Sending 59994 characters to Ollama model llama3.2:latest
+2026-01-04 13:56:58 - INFO - financial_tracker.ollama_client - Ollama returned 2022 characters
+2026-01-04 13:56:58 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: This is a large dataset of payment transactions, with each transaction represented as a line of text. The data appears to be in a CSV (Comma Separated Values) format, but it's not properly formatted.
+
+To make sense of this data, I'll provide an overview of the structure and content of the transactions.
+
+**Transaction Structure**
+
+Each transaction is represented by a single line of text, with various fields separated by commas. The fields include:
+
+1. Date (YYYY-MM-DD)
+2. Time (HH:MM:SS)
+3. Trans
+2026-01-04 13:58:13 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 60000 for model processing
+2026-01-04 13:58:13 - INFO - financial_tracker.ollama_client - Sending 59994 characters to Ollama model llama3.2:latest
+2026-01-04 13:58:19 - INFO - financial_tracker.ollama_client - Ollama returned 1239 characters
+2026-01-04 13:58:19 - ERROR - financial_tracker.ollama_client - Failed to parse Ollama response. First 500 chars: This is a large dataset of payment transactions, with each transaction represented as a line of text. The data appears to be in a CSV (Comma Separated Values) format, but it's not properly formatted, so I'll provide a summary of the data instead.
+
+**Transaction Types**
+
+The data includes various types of transactions:
+
+* UPI (Unified Payments Interface)
+* NEFT (National Electronic Fund Transfer)
+* ACH (Automated Clearing House)
+* Credit/Debit card payments
+* Paytm payments
+* CRED payments
+* ETMO
+2026-01-04 13:59:24 - WARNING - financial_tracker.ollama_client - PDF text is 197798 chars, truncating to 30000 for model processing
+2026-01-04 13:59:24 - INFO - financial_tracker.ollama_client - Sending 30011 characters to Ollama model llama3.2:latest
+2026-01-04 13:59:38 - INFO - financial_tracker.ollama_client - Ollama returned 934 characters
+2026-01-04 13:59:38 - WARNING - financial_tracker.ollama_client - Unknown transaction type: 'NEFT', inferring from amount
+2026-01-04 13:59:38 - WARNING - financial_tracker.ollama_client - Unknown transaction type: 'UPI', inferring from amount
+2026-01-04 13:59:38 - WARNING - financial_tracker.ollama_client - Unknown transaction type: 'UPI', inferring from amount
+2026-01-04 13:59:38 - WARNING - financial_tracker.ollama_client - Unknown transaction type: 'NEFT', inferring from amount
+2026-01-04 13:59:38 - INFO - financial_tracker.ollama_client - Extracted 4 valid transactions from Ollama response (filtered 0 metadata/invalid rows)
+2026-01-04 13:59:46 - INFO - sentence_transformers.SentenceTransformer - Use pytorch device_name: cpu
+2026-01-04 13:59:46 - INFO - sentence_transformers.SentenceTransformer - Load pretrained SentenceTransformer: all-MiniLM-L6-v2
